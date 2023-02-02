@@ -18,26 +18,24 @@ cdt_columns = ['name', 'id', 'degree', 'field_of_study', 'university', 'graduati
            'health_history', 'intersts', 'car', 'house', 'job', 'city', 'country', 'date_of_birth', 
            'family_members', 'company_coords']
 
-jobs = pd.read_csv('job_opp.csv')
 
 @app.route('/', methods=['GET'])
 def return_data():
     
     id = request.args.get('id')
     cnx = mysql.connector.connect(
-                    host="rm-l4vtsmuu203976dh4qo.mysql.me-central-1.rds.aliyuncs.com",
+                    host="rm-l4vtsmuu203976dh4.mysql.me-central-1.rds.aliyuncs.com",
                     user="admin_account",
                     password="Admin@2023",
                     database="mysql"
             )
     cursor = cnx.cursor()
 
-    # query = f"SELECT * FROM new_schema.apartment_data"
-    # cursor.execute(query)
-    # jobs = cursor.fetchall()
-    # jobs = dict(zip(job_columns, np.array(jobs).T))
-    # jobs = pd.DataFrame(data=jobs)
-    # jobs = jobs[jobs['availability'] == 'available']
+    query = f"SELECT * FROM new_schema.job_opp"
+    cursor.execute(query)
+    jobs = cursor.fetchall()
+    jobs = dict(zip(job_columns, np.array(jobs).T))
+    jobs = pd.DataFrame(data=jobs)
 
     query = f"SELECT * FROM new_schema.data WHERE id = \"{id}\""
     cursor.execute(query)
@@ -53,8 +51,7 @@ def return_data():
     jobs_values =jobs['intersts'].apply(lambda x: np.array([v for k,v in eval(x).items()])).to_numpy()
     jobs_values = [i - cdt_interests for i in jobs_values]
     dot_jobs_cdt = np.linalg.norm(jobs_values, axis=0)
-    sorted_jobs = np.argsort(dot_jobs_cdt)[::5]
-    jobs.iloc[sorted_jobs]
+    sorted_jobs = np.argsort(dot_jobs_cdt)[::-1][::5]
     return jobs.iloc[sorted_jobs].to_dict(orient='records')
     
 if __name__ == '__main__':
